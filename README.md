@@ -12,4 +12,6 @@
 3.眨眼可以区分单次眨眼，两次眨眼等。<br>
 4.咬牙可以区分出单次咬牙，两次咬牙，长咬等。<br>
 
-注：MindWave Mobile购买网址：http://store.neurosky.com/products/mindwave-mobile<br>
+注：<br>
+Android5.0以上无法接听电话。<br>
+MindWave Mobile购买网址：http://store.neurosky.com/products/mindwave-mobile<br>
