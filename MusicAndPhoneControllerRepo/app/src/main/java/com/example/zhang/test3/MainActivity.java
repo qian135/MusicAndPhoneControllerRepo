@@ -16,6 +16,8 @@ import android.widget.Toast;
 import com.neurosky.thinkgear.TGDevice;
 import com.neurosky.thinkgear.TGEegPower;
 
+import java.lang.ref.WeakReference;
+
 public class MainActivity extends Activity {
 
     BluetoothAdapter bluetoothAdapter;
@@ -25,6 +27,7 @@ public class MainActivity extends Activity {
 
     final boolean rawEnabled = true;
 
+    //算法处理的相关数据
     double task_famil_baseline, task_famil_cur, task_famil_change;
     boolean task_famil_first;
     double task_diff_baseline, task_diff_cur, task_diff_change;
@@ -42,44 +45,43 @@ public class MainActivity extends Activity {
     int BaseNum = 250;
     int SpeedNum = 0;
 
+    //输出调试信息
     ScrollView sv;
     TextView tv;
 
     boolean buttonFlag = true;
 
+    //连接和发送命令按钮
+    Button mConnect, mButton1;
 
-
-
-    Button mConnect,mButton1;
-
+    private MyHandler mMyHandler;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mMyHandler = new MyHandler(this);
+        
         sv = (ScrollView) findViewById(R.id.scrollView1);
         tv = (TextView) findViewById(R.id.textView1);
 
-        Intent intent = new Intent(MainActivity.this,MyService.class);
+        //启动后台服务，使用户即使退出APP，也能进行相关的控制功能
+        Intent intent = new Intent(MainActivity.this, MyService.class);
         startService(intent);
 
         //参数的具体含义我不知道
-        subjectContactQuality_last = -1; /* start with impossible value */
-        subjectContactQuality_cnt = 200; /* start over the limit, so it gets reported the 1st time */
+        subjectContactQuality_last = -1;
+        subjectContactQuality_cnt = 200;
 
-        // Check if Bluetooth is available on the Android device
+        // 检查手机是否支持蓝牙
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
-
-            // Alert user that Bluetooth is not available
             Toast.makeText(this, "Bluetooth not available", Toast.LENGTH_LONG).show();
             //finish();
             return;
-
         } else {
-
-            // create the TGDevice
-            tgDevice = new TGDevice(bluetoothAdapter, handler);
+            tgDevice = new TGDevice(bluetoothAdapter, mMyHandler);
         }
 
         //参数意思不知道
@@ -88,6 +90,7 @@ public class MainActivity extends Activity {
         task_diff_baseline = task_diff_cur = task_diff_change = 0.0;
         task_diff_first = true;
 
+        //进行连接
         mConnect = (Button) findViewById(R.id.connectButton);
         mConnect.setOnClickListener(new View.OnClickListener() {
 
@@ -105,13 +108,14 @@ public class MainActivity extends Activity {
         });
 
 
+        //发送命令
         mButton1 = (Button) findViewById(R.id.button1);
         mButton1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent();
                 intent.setAction("MyCommand");
-                intent.putExtra("Command",1);
+                intent.putExtra("Command", 1);
                 sendBroadcast(intent);
             }
         });
@@ -126,13 +130,20 @@ public class MainActivity extends Activity {
      * 将MSG_ATTENTION发送到MyView
      * 将MSG_MEDITATION发送到MyView
      */
-    final Handler handler = new Handler() {
+    public class MyHandler extends Handler {
+
+        WeakReference<MainActivity> mMainActivityWeakReference;
+
+        public MyHandler(MainActivity mainActivity) {
+            mMainActivityWeakReference = new WeakReference<>(mainActivity);
+        }
+
         @Override
         public void handleMessage(Message msg) {
 
             switch (msg.what) {
                 case TGDevice.MSG_MODEL_IDENTIFIED:
-            		/*
+                    /*
             		 * now there is something connected,
             		 * time to set the configurations we need
             		 */
@@ -387,9 +398,10 @@ public class MainActivity extends Activity {
 
             sv.fullScroll(View.FOCUS_DOWN);
 
-        } /* end handleMessage() */
-
-    }; /* end Handler */
+        }
+        
+    }
+    
 
     private double calcPercentChange(double baseline, double current) {
         double change;
@@ -404,6 +416,7 @@ public class MainActivity extends Activity {
         return (change);
     }
 
+    //算法处理部分（准确度有待提高和改进）
     void Algorithm(int A[]) {
 
     	/*
@@ -457,13 +470,13 @@ public class MainActivity extends Activity {
             else
                 Command = 6;
         }
-        //!!!
+
         if (Command > 0) {
             if (Command >= 1 && Command <= 6)
                 tv.append("Command = " + Output[Command - 1] + "\n");
             Intent intent = new Intent();
             intent.setAction("MyCommand");
-            intent.putExtra("Command",Command);
+            intent.putExtra("Command", Command);
             sendBroadcast(intent);
         }
     }

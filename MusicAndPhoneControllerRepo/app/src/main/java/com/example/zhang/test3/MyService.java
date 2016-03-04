@@ -15,6 +15,7 @@ import com.android.internal.telephony.ITelephony;
 
 import java.lang.reflect.Method;
 
+//后台服务程序
 public class MyService extends Service {
 
     private int count;
@@ -136,6 +137,7 @@ public class MyService extends Service {
                 }
             }
 
+            //上一首歌
             if (mCommand == 4) {
                 System.out.println("#");
 
@@ -144,7 +146,6 @@ public class MyService extends Service {
                     System.out.println("***");
                     long eventtime = SystemClock.uptimeMillis();
 
-                            /*PREVIOUS*/
                     Intent downIntent = new Intent(Intent.ACTION_MEDIA_BUTTON, null);
                     KeyEvent downEvent = new KeyEvent(eventtime, eventtime, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PREVIOUS, 0);
                     downIntent.putExtra(Intent.EXTRA_KEY_EVENT, downEvent);
@@ -157,11 +158,11 @@ public class MyService extends Service {
                 }
             }
 
+            //下一首歌
             if (mCommand == 2) {
                 if (mAudioManager.isMusicActive()) {
                     long eventtime = SystemClock.uptimeMillis();
 
-                            /*NEXT*/
                     Intent downIntent = new Intent(Intent.ACTION_MEDIA_BUTTON, null);
                     KeyEvent downEvent = new KeyEvent(eventtime, eventtime, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT, 0);
                     downIntent.putExtra(Intent.EXTRA_KEY_EVENT, downEvent);
@@ -232,7 +233,6 @@ public class MyService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
